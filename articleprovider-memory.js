@@ -35,6 +35,7 @@ ArticleProvider.prototype.save = function(articles, callback) {
     for(var j =0;j< article.comments.length; j++) {
       article.comments[j].created_at = new Date();
     }
+
     this.dummyData[this.dummyData.length]= article;
   }
   callback(null, articles);
