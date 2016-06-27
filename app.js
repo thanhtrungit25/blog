@@ -1,6 +1,6 @@
 // Module dependencies.
 var express = require('express');
-var ArticleProvider = require('./articleprovider-memory').ArticleProvider;
+var ArticleProvider = require('./articleprovider-mongodb').ArticleProvider;
 
 var app = module.exports = express.createServer();
 
@@ -29,12 +29,12 @@ app.configure('production', function(){
   app.use(express.errorHandler());
 });
 
-var articleProvider = new ArticleProvider();
+var articleProvider = new ArticleProvider('localhost',27017);
 
 // Routes
 app.get('/', function(req, res) {
     articleProvider.findAll(function (error, docs) {
-      res.render('index.jade', { locals: {
+      res.render('index-final.jade', { locals: {
         title: 'Blog',
         articles: docs
         }
@@ -58,4 +58,28 @@ app.post('/blog/new', function (req, res) {
   });
 });
 
+app.get('/blog/:id', function (req, res) {
+  articleProvider.findById(req.params.id, function (error, article) {
+    // console.log(article);
+    res.render('blog_show-final.jade',
+      { locals: {
+        title: article.title,
+        article: article
+      }
+    });
+  });
+});
+
+app.post('/blog/addComment', function(req, res) {
+  articleProvider.addCommentToArticle(req.param('_id'), {
+    person: req.param('person'),
+    comment: req.param('comment'),
+    created_at: new Date()
+  }, function (err, docs) {
+    console.log(docs);
+    res.redirect('/blog/' + req.param('_id'))
+  });
+});
+
 app.listen(3000);
+console.log("Express server listening on port %d in %s mode", app.address().port, app.settings.env);
